@@ -1,0 +1,33 @@
+{
+  "name": "openedu",
+  "version": "0.0.1-dev",
+  "description": "Conference system based on OpenVidu",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChickenDevLab/OpenEdu.git"
+  },
+  "author": "Dr_Dee",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ChickenDevLab/OpenEdu/issues"
+  },
+  "homepage": "https://github.com/ChickenDevLab/OpenEdu#readme",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "express-ws": "^4.0.0",
+    "form-data": "^4.0.0",
+    "jsdom": "^16.5.0",
+    "log4js": "^6.3.0",
+    "lokijs": "^1.5.11",
+    "node-cron": "^3.0.0",
+    "node-fetch": "^2.6.1",
+    "openvidu-node-client": "^2.17.0"
+  }
+}
