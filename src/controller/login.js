@@ -51,7 +51,7 @@ function validateTeacherID(id) {
 }
 
 const controller = {
-    student: (req, res) => {
+    student: async (req, res) => {
         internalCounter++
         if (!req.body['username'] || !req.body['password']) {
             res.status(400).send(error.missing_fields)
@@ -77,7 +77,7 @@ const controller = {
         }
 
     },
-    teacher: (req, res) => {
+    teacher: async (req, res) => {
         internalCounter++
         if (!req.body['username'] || !req.body['password'] || !req.body['teacherID']) {
             res.status(400).send(error.missing_fields)
@@ -107,6 +107,15 @@ const controller = {
             }).catch(() => {
                 res.status(401).send(error.invalid_credentiels)
                 loginLogger.http('Teacher login as ' + req.body['username'] + ' from ' + req.ip + ' failed: invalid credentiels')
+            })
+        }
+    },
+    token: async (req, res) => {
+        if(!req.params.token){
+            res.status(400).send(error.invalid_request)
+        } else {
+            db.getLoginToken(req.params.token).then(data => {
+                res.status(data ? 200: 400).send(data ? data : error.not_found)
             })
         }
     }

@@ -10,5 +10,13 @@ module.exports = {
     invalid_credentiels: JSON.stringify({
         error: true,
         message: 'Invalid credentiels'
+    }),
+    invalid_request: JSON.stringify({
+        error: true,
+        message: 'Invalid request'
+    })    ,
+    not_found: JSON.stringify({
+        error: true,
+        message: 'Not found'
     })
 }

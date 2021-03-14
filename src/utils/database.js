@@ -1,85 +1,49 @@
-const loki = require('lokijs')
-const cron = require('node-cron')
+const redis = require('redis')
 
 const logger = require('./logger').getLogger('database')
 
-let db
+let client
 
 let users = null
 let meetings = null
 
 const validUserDataFields = ['name', 'displayName', 'token', 'type']
 
-const afterLoad = function () {
-    users = db.getCollection('users')
-    if (users == null) {
-        logger.info('User collection does not exsits; creating new..')
-        users = db.addCollection('users', {
-            unique: ['token']
-        })
-    }
-    meetings = db.getCollection('meetings')
-    if (meetings == null) {
-        logger.info('Meeting collection does not exsits; creating new..')
-        meetings = db.addCollection('meetings')
-    }
-    database.clearExpiredTokens()
-    logger.info('Initialize Token Cleaner')
-
-    cron.schedule('*/15 * * * *', () => {
-        database.clearExpiredTokens()
-    })
-
-    logger.info('Database loaded')
-}
-
 const database = {
-    loadDB: function () {
-        db = new loki('main.db', {
-            autoload: true,
-            autosave: true,
-            autosaveInterval: 5000,
-            autoloadCallback: afterLoad
-        })
+    loadDB: async function () {
+        client = redis.createClient()
+        logger.info('Created redis client in worker ' + process.pid)
     },
-    saveDB: function () {
-        return new Promise(resolve => {
-            logger.info('Databases saved')
-            db.saveDatabase(resolve)
-        })
-    },
-    clearExpiredTokens: function () {
-        const cnt = users.find({
-            expires: {
-                $lt: new Date().getTime()
-            }
-        }).length
 
-        users.removeWhere({
-            expires: {
-                $lt: new Date().getTime()
-            }
-        })
-        logger.info('Removed ' + cnt + ' expired login tokens')
-    },
     addLoginToken: async function (userdata) {
         return new Promise((resolve, reject) => {
-            for (key in validUserDataFields) {
-                if (userdata[validUserDataFields[key]] == undefined) {
+            for (k in validUserDataFields) {
+                if (userdata[validUserDataFields[k]] == undefined) {
                     reject()
                     return
                 }
             }
-            if (users.by('token', userdata.token)) {
-                reject()
-                return
-            }
+            const key = 'token:' + userdata.token
+            client.hgetall(key, async (token) => {
+                if (token) {
+                    reject()
+                } else {
+                    await client.hset(key, 'name', userdata.name, 'displayName', userdata.displayName, 'token', userdata.token, 'type', userdata.type)
+                    await client.expireat(key, new Date().getTime() + 604800000)
+                }
+            })
 
             userdata.expires = new Date().getTime() + 604800000 // eine Woche
-            users.insert(userdata)
-            delete userdata['meta']
-            delete userdata['$loki']
             resolve(userdata)
+        })
+    },
+    getLoginToken: async function (token) {
+        return new Promise((resolve, reject) => {
+            client.hgetall('token:' + token, (err, data) => {
+                if (err || data == null) {
+                    resolve(null)
+                } else resolve(data)
+            })
         })
     }
 }
