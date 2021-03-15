@@ -10,7 +10,7 @@ log4js.configure({
     appenders: {
         file: {
             type: 'dateFile',
-            pattern: '-yyyy-MM-dd',
+            pattern: 'yyyy-MM-dd',
             keepFileExt: true,
             filename: 'logs/log.log'
         },
@@ -36,6 +36,10 @@ log4js.configure({
             level: 'debug'
         },
         login: {
+            appenders: ['file', 'console'],
+            level: 'http'
+        },
+        gateway: {
             appenders: ['file', 'console'],
             level: 'http'
         }

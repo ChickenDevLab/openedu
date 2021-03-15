@@ -3,6 +3,8 @@ const express = require('express')
 const config = require('./utils/config')
 const logger = require('./utils/logger')
 const db = require('./utils/database')
+const EventDispatcher = require('cluster-eventdispatcher')
+const WebSocketGateway = require('./websocket')
 
 const mainLogger = logger.getLogger('main')
 
@@ -24,9 +26,16 @@ module.exports = function (app) {
         app.post('/api/login/teacher', loginController.teacher)
         app.get('/api/login/token/:token', loginController.token)
 
-        app.listen(config.getConfig().port, () => {
+        app.get('/', (req, res) => {
+            res.send('hi')
+        })
+
+        const server = app.listen(config.getConfig().port, () => {
             mainLogger.info('Worker ' + process.pid + ' listen on port ' + config.getConfig().port)
         })
+
+        new WebSocketGateway(server, '/api/gateway')
+        
     })
 }
 

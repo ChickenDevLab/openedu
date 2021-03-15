@@ -9,6 +9,8 @@ const { JSDOM } = require('jsdom')
 const FormData = require('form-data')
 const cron = require('node-cron')
 
+const dispatcher = new (require('cluster-eventdispatcher'))()
+
 let internalCounter = 0
 
 function loginToLernsax(name, password) {
@@ -53,11 +55,11 @@ function validateTeacherID(id) {
 const controller = {
     student: async (req, res) => {
         internalCounter++
-        if (!req.body['username'] || !req.body['password']) {
+        if (!req.body['name'] || !req.body['password']) {
             res.status(400).send(error.missing_fields)
         } else {
 
-            loginToLernsax(req.body['username'], req.body['password']).then((data) => {
+            loginToLernsax(req.body['name'], req.body['password']).then((data) => {
                 loginLogger.http('Student logged in from ' + req.ip + ' as ' + data.userName)
                 const token = hash.sha256(internalCounter + data.userName + new Date().getTime(), config.getConfig().security.salt)
                 const userdata = {
@@ -79,14 +81,14 @@ const controller = {
     },
     teacher: async (req, res) => {
         internalCounter++
-        if (!req.body['username'] || !req.body['password'] || !req.body['teacherID']) {
+        if (!req.body['name'] || !req.body['password'] || !req.body['teacherID']) {
             res.status(400).send(error.missing_fields)
         } else {
             validateTeacherID(req.body['teacherID']).then(isValid => {
                 if (isValid) {
-                    loginToLernsax(req.body['username'], req.body['password']).then((data) => {
+                    loginToLernsax(req.body['name'], req.body['password']).then((data) => {
                         loginLogger.http('Teacher logged in from ' + req.ip + ' as ' + data.userName)
-                        const token = hash.sha256(internalCounter + data.userName + new Date().getTime(), config.getConfig().security.salt)
+                        const token = hash.sha256(internalCounter + data.userName + new Date().getTime() + process.pid, config.getConfig().security.salt)
                         const userdata = {
                             name: data.userName,
                             token: token,
@@ -116,13 +118,16 @@ const controller = {
         } else {
             db.getLoginToken(req.params.token).then(data => {
                 res.status(data ? 200: 400).send(data ? data : error.not_found)
+                loginLogger.http(data ? ('Token information for ' + data.name + ' was retrieved from ' + req.ip) : (req.ip + ' tried to fetch information about invalid token.'))
             })
         }
     }
 }
 
-cron.schedule('*/1 * * * *', () => {
-    internalCounter = 0
+dispatcher.on('scheduler', (data) => {
+    if(data === '1h'){
+        internalCounter = 0
+    }
 })
 
 module.exports = controller
