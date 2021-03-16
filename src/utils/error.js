@@ -18,5 +18,9 @@ module.exports = {
     not_found: JSON.stringify({
         error: true,
         message: 'Not found'
+    }),
+    unauthorized: JSON.stringify({
+        error: true,
+        message: 'Unauthorized request'
     })
 }

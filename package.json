@@ -29,6 +29,14 @@
     "node-fetch": "^2.6.1",
     "openvidu-node-client": "^2.17.0",
     "redis": "^3.0.2",
+    "redis-utilities": "^1.0.1",
     "ws": "^7.4.4"
+  },
+  "devDependencies": {
+    "eslint": "^7.22.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1"
   }
 }

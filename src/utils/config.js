@@ -5,7 +5,12 @@ const standartConfig = {
     openvidu_secret: 'MY_SECRET',
     port: 80,
     security: {
-        salt: 'standart salt'
+        salt: 'standart salt',
+        auth: {
+            app_tokens: [
+                'test-Token'
+            ]
+        }
     }
 }
 
@@ -36,7 +41,7 @@ module.exports.loadConfig = function () {
             } else {
                 try {
                     const unsecureConfig = JSON.parse(data)
-                    for (key in standartConfig) {
+                    for (var key in standartConfig) {
                         if (!unsecureConfig[key]) {
                             unsecureConfig[key] = standartConfig[key]
                         }
