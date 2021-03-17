@@ -41,7 +41,7 @@ class RouteRestrictor {
                                         logger.success('User ' + data.name + ' authorizated successfully from ' + req.ip + ' as ' + authHeader[0])
                                         next()
                                     } else {
-                                        this.handleFail('Invalid login token')
+                                        this.handleFail(req, res, 'Invalid login token')
                                     }
                                 })
                                 break

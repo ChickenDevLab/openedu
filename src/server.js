@@ -16,6 +16,15 @@ function spawnWorker(dispatcher) {
     const worker = cluster.fork()
 
     dispatcher.initWorker(worker)
+    dispatcher.once('redis:error', () => {
+        mainLogger.fatal('Could not connect to redis server. Stopping OpenEdu..')
+        shutdown()
+    })
+
+    dispatcher.once('server:error', (err) => {
+        mainLogger.fatal('Uncaught error on server instance: ' + err)
+        shutdown()
+    })
     worker.once('online', () => {
         mainLogger.info('Worker ' + worker.process.pid + ' is ready')
     })
@@ -54,13 +63,15 @@ if (cluster.isMaster) {
     process.once('SIGINT', shutdown)
     process.once('SIGTERM', shutdown)
 
+    process.once('uncaughtException', (e) => {
+        mainLogger.fatal('Uncaught exception: ', e)
+    })
 
 } else {
     workerApp(app)
 }
 
 function shutdown() {
-
     mainLogger.info('OpenEdu shutting down..')
     mainLogger.info('Shutting down Logger..')
     logger.shutdown(() => {

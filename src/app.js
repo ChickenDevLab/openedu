@@ -12,8 +12,10 @@ const mainLogger = logger.getLogger('main')
 const loginController = require('./controller/login')
 const meetingController = require('./controller/meetings')
 
+const dispatcher = new (require('cluster-eventdispatcher'))()
+
 module.exports = function (app) {
-    config.loadConfig().catch(() => {}).finally(async () => {
+    config.loadConfig().catch(() => { }).finally(async () => {
         await db.loadDB()
 
         app.set('x-powered-by', false)
@@ -28,19 +30,27 @@ module.exports = function (app) {
         app.post('/api/login/teacher', loginController.teacher)
         app.get('/api/login/token/:token', loginController.token)
 
-        const meetingRestictor = new RouteRestrictor(['student', 'teacher', 'app'])
+        const meetingRestictor = new RouteRestrictor(['teacher', 'app'])
         app.get('/api/meetings', meetingRestictor.handle, meetingController.meetingsList)
+        app.post('/api/meetings/create', meetingRestictor.handle, meetingController.createMeeting)
 
         app.get('/', (req, res) => {
-            db.getMeetingIDs()
+            db.getMeetings().then(meetings => {
+                res.json(meetings)
+            })
         })
+
 
         const server = app.listen(config.getConfig().port, () => {
             mainLogger.info('Worker ' + process.pid + ' listen on port ' + config.getConfig().port)
         })
 
+        server.on('error', (err) => {
+            dispatcher.dispatch('server:error', err.code)
+        })
+
         new WebSocketGateway(server, '/api/gateway')
-        
+
     })
 }
 

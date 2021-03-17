@@ -61,7 +61,7 @@ const controller = {
 
             loginToLernsax(req.body['name'], req.body['password']).then((data) => {
                 loginLogger.http('Student logged in from ' + req.ip + ' as ' + data.userName)
-                const token = hash.sha256(internalCounter + data.userName + new Date().getTime(), config.getConfig().security.salt)
+                const token = hash.sha256(internalCounter + data.userName + Date.now(), config.getConfig().security.salt)
                 const userdata = {
                     name: data.userName,
                     token: token,
@@ -70,8 +70,10 @@ const controller = {
                 }
                 db.addLoginToken(userdata).then((ret) => {
                     res.json(ret)
+                }, () => {
+                    res.status(500).send(error.internal_error)
                 })
-            }).catch((name) => {
+            }, (name) => {
                 res.status(401).send(error.invalid_credentiels)
                 loginLogger.http('Student login as ' + name + ' from ' + req.ip + ' failed: invalid credentiels')
             })
@@ -88,7 +90,7 @@ const controller = {
                 if (isValid) {
                     loginToLernsax(req.body['name'], req.body['password']).then((data) => {
                         loginLogger.http('Teacher logged in from ' + req.ip + ' as ' + data.userName)
-                        const token = hash.sha256(internalCounter + data.userName + new Date().getTime() + process.pid, config.getConfig().security.salt)
+                        const token = hash.sha256(internalCounter + data.userName + Date.now() + process.pid, config.getConfig().security.salt)
                         const userdata = {
                             name: data.userName,
                             token: token,
@@ -97,8 +99,10 @@ const controller = {
                         }
                         db.addLoginToken(userdata).then((ret) => {
                             res.json(ret)
+                        }, () => {
+                            res.status(500).send(error.internal_error)
                         })
-                    }).catch((name) => {
+                    }, (name) => {
                         res.status(401).send(error.invalid_credentiels)
                         loginLogger.http('Teacher login as ' + name + ' from ' + req.ip + ' failed: invalid credentiels')
                     })
