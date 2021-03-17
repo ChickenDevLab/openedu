@@ -1,0 +1,18 @@
+services:
+  master:
+    container_name: master
+    build: .
+    ports: 
+      - "80:80"
+    environment:
+      TYPE: DOCKER
+  redis:
+    container_name: redis
+    image: "redis:latest"
+  openvidu:
+    container_name: openvidu
+    image: "openvidu/openvidu-server-kms:2.17.0"
+    ports: 
+      - "4443:4443"
+    environment:
+      OPENVIDU_SECRET: MY_SECRET
