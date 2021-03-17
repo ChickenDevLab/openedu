@@ -7,7 +7,6 @@ const db = require('../utils/database')
 const fetch = require('node-fetch')
 const { JSDOM } = require('jsdom')
 const FormData = require('form-data')
-const cron = require('node-cron')
 
 const dispatcher = new (require('cluster-eventdispatcher'))()
 
@@ -56,7 +55,7 @@ const controller = {
     student: async (req, res) => {
         internalCounter++
         if (!req.body['name'] || !req.body['password']) {
-            res.status(400).send(error.missing_fields)
+            res.status(400).json(error.missing_fields)
         } else {
 
             loginToLernsax(req.body['name'], req.body['password']).then((data) => {
@@ -71,10 +70,10 @@ const controller = {
                 db.addLoginToken(userdata).then((ret) => {
                     res.json(ret)
                 }, () => {
-                    res.status(500).send(error.internal_error)
+                    res.status(500).json(error.internal_error)
                 })
             }, (name) => {
-                res.status(401).send(error.invalid_credentiels)
+                res.status(401).json(error.invalid_credentiels)
                 loginLogger.http('Student login as ' + name + ' from ' + req.ip + ' failed: invalid credentiels')
             })
 
@@ -84,7 +83,7 @@ const controller = {
     teacher: async (req, res) => {
         internalCounter++
         if (!req.body['name'] || !req.body['password'] || !req.body['teacherID']) {
-            res.status(400).send(error.missing_fields)
+            res.status(400).json(error.missing_fields)
         } else {
             validateTeacherID(req.body['teacherID']).then(isValid => {
                 if (isValid) {
@@ -100,25 +99,25 @@ const controller = {
                         db.addLoginToken(userdata).then((ret) => {
                             res.json(ret)
                         }, () => {
-                            res.status(500).send(error.internal_error)
+                            res.status(500).json(error.internal_error)
                         })
                     }, (name) => {
-                        res.status(401).send(error.invalid_credentiels)
+                        res.status(401).json(error.invalid_credentiels)
                         loginLogger.http('Teacher login as ' + name + ' from ' + req.ip + ' failed: invalid credentiels')
                     })
                 } else {
-                    res.status(401).send(error.invalid_credentiels)
+                    res.status(401).json(error.invalid_credentiels)
                     loginLogger.http('Teacher login as ' + req.body['username'] + ' from ' + req.ip + ' failed: invalid credentiels')
                 }
             }).catch(() => {
-                res.status(401).send(error.invalid_credentiels)
+                res.status(401).json(error.invalid_credentiels)
                 loginLogger.http('Teacher login as ' + req.body['username'] + ' from ' + req.ip + ' failed: invalid credentiels')
             })
         }
     },
     token: async (req, res) => {
         if(!req.params.token){
-            res.status(400).send(error.invalid_request)
+            res.status(400).json(error.invalid_request)
         } else {
             db.getLoginToken(req.params.token).then(data => {
                 res.status(data ? 200: 400).send(data ? data : error.not_found)

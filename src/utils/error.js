@@ -1,26 +1,26 @@
 module.exports = {
-    missing_fields: JSON.stringify({
+    missing_fields: {
         error: true,
         message: 'Missing fields'
-    }),
-    internal_error: JSON.stringify({
+    },
+    internal_error: {
         error: true,
         message: 'Internal Server Error'
-    }),
-    invalid_credentiels: JSON.stringify({
+    },
+    invalid_credentiels: {
         error: true,
         message: 'Invalid credentiels'
-    }),
-    invalid_request: JSON.stringify({
+    },
+    invalid_request: {
         error: true,
         message: 'Invalid request'
-    })    ,
-    not_found: JSON.stringify({
+    }    ,
+    not_found: {
         error: true,
         message: 'Not found'
-    }),
-    unauthorized: JSON.stringify({
+    },
+    unauthorized: {
         error: true,
         message: 'Unauthorized request'
-    })
+    }
 }

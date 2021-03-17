@@ -31,15 +31,10 @@ module.exports = function (app) {
         app.get('/api/login/token/:token', loginController.token)
 
         const meetingRestictor = new RouteRestrictor(['teacher', 'app'])
+        meetingController.init(db)
         app.get('/api/meetings', meetingRestictor.handle, meetingController.meetingsList)
         app.post('/api/meetings/create', meetingRestictor.handle, meetingController.createMeeting)
-
-        app.get('/', (req, res) => {
-            db.getMeetings().then(meetings => {
-                res.json(meetings)
-            })
-        })
-
+        app.get('/api/meetings/delete/:id', meetingRestictor.handle, meetingController.deleteMeeting)
 
         const server = app.listen(config.getConfig().port, () => {
             mainLogger.info('Worker ' + process.pid + ' listen on port ' + config.getConfig().port)

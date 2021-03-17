@@ -6,6 +6,7 @@ const dispatcher = new (require('cluster-eventdispatcher'))()
 const utils = require('../utils')
 const hash = require('./hash')
 const config = require('./config')
+const { deleteMeeting } = require('../controller/meetings')
 
 let client
 
@@ -35,7 +36,7 @@ const database = {
 
     addLoginToken: function (userdata) {
         return new Promise((resolve, reject) => {
-            if(!utils.hasAllProperties(userdata, validUserDataFields)){
+            if (!utils.hasAllProperties(userdata, validUserDataFields)) {
                 reject()
                 return
             }
@@ -67,14 +68,14 @@ const database = {
         return new Promise((resolve, reject) => {
             const meetings = []
             util.getAllMatchingKeys('meeting:*', 'hash').then(ids => {
-                if(ids.length == 0){
+                if (ids.length == 0) {
                     resolve([])
                 }
                 ids.forEach((id, index) => {
                     client.hgetall(id, (err, data) => {
-                        if(!(err || data == null)){
+                        if (!(err || data == null)) {
                             meetings.push(data)
-                            if(index == ids.length -1){
+                            if (index == ids.length - 1) {
                                 resolve(meetings)
                             }
                         } else {
@@ -83,27 +84,47 @@ const database = {
                     })
                 })
             })
-        })    
+        })
     },
 
     createMeeting: function (meetingData) {
         return new Promise((resolve, reject) => {
-            if(!utils.hasAllProperties(validMeetingDataFields)){
+            if (!utils.hasAllProperties(validMeetingDataFields)) {
                 reject()
                 return
             }
             let meetingID = hash.sha256(JSON.stringify(meetingData) + process.pid + Date.now(), config.getConfig().security.salt).slice(0, 6)
             client.hgetall('meeting:' + meetingID, (err, data) => {
-                if(err || data){
+                if (err || data) {
                     reject()
                     return
-                }else {
-                    client.hset('meeting:' + meetingID, 'realStart', meetingData.realStart, 'start', meetingData.start, 'stop', meetingData.stop, 'name', meetingData.name)
+                } else {
+                    client.hset('meeting:' + meetingID, 'realStart', meetingData.realStart, 'start', meetingData.start, 'stop', meetingData.stop, 'name', meetingData.name, 'id', meetingID)
                     meetingData.id = meetingID
                     resolve(meetingData)
                 }
             })
-        })        
+        })
+    },
+
+    getMeeting: function (id) {
+        return new Promise((resolve, reject) => {
+            client.hgetall('meeting:' + id, (err, data) => {
+                if (err || !data) {
+                    reject()
+                    return
+                }
+                resolve(data)
+            })
+        })
+    },
+
+    deleteMeeting: function (id) {
+        return new Promise((resolve, reject) => {
+            client.del('meeting:' + id, (err, data) => {
+                resolve()
+            })
+        })
     }
 }
 module.exports = database

@@ -1,7 +1,7 @@
 const errors = require('../utils/error')
-const db = require('../utils/database')
-
 const logger = require('../utils/logger').getLogger('meetings')
+
+let db
 
 function parseAndValidateDates(day, start, stop){
     return new Promise((resolve, reject) => {
@@ -29,7 +29,10 @@ function parseAndValidateDates(day, start, stop){
     })    
 }
 
-module.exports = {
+const controller = {
+    init: (database) => {
+        db = database
+    },
     meetingsList: (req, res) => {
         db.getMeetings().then(meetings => {
             res.status(200).json(meetings)
@@ -46,15 +49,34 @@ module.exports = {
                     stop: dates.stop.getTime()
                 }).then(meeting => {
                     res.status(200).send(meeting.id)
-                    logger.http('Meeting ' + meeting.id + ' was created.')
+                    logger.http('Meeting #' + meeting.id + ' - ' + meeting.name + ' was created.')
                 }, () => {
-                    res.status(400).send(errors.internal_error)
+                    res.status(400).json(errors.internal_error)
                 })
             }, () => {
-                res.status(400).send(errors.invalid_request)
+                res.status(400).json(errors.invalid_request)
             })
         } else {
-            res.status(400).send(errors.missing_fields)
+            res.status(400).json(errors.missing_fields)
+        }
+    },
+    deleteMeeting: (req, res) => {
+        if(req.params.id){
+            db.getMeeting(req.params.id).then(meeting => {
+                db.deleteMeeting(meeting.id).then(() => {
+                    res.status(200).json({
+                        error: false,
+                        message: 'Meeting deleted'
+                    })
+                    logger.http('Meeting #' + meeting.id + ' - ' + meeting.name + ' was deleted')
+                })
+            }, () => {
+                res.status(404).json(errors.not_found)
+            })
+        } else {
+            req.status(400).json(errors.invalid_request)
         }
     }
 }
+
+module.exports = controller

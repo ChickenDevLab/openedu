@@ -61,7 +61,7 @@ class RouteRestrictor {
     }
 
     handleFail(req, res, cause) {
-        res.status(401).send(errors.unauthorized)
+        res.status(401).json(errors.unauthorized)
         logger.fail('Auth failed from ' + req.ip + ': ' + cause)
     }
 }
