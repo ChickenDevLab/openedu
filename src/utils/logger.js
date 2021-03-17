@@ -58,6 +58,10 @@ log4js.configure({
         auth: {
             appenders: ['file', 'console'],
             level: 'http'
+        },
+        meetings: {
+            appenders: ['file', 'console'],
+            level: 'http'
         }
     }
 })

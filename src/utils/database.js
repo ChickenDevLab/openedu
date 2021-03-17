@@ -92,7 +92,17 @@ const database = {
                 reject()
                 return
             }
-            const meetingID = hash.sha256(JSON.stringify(meetingData) + process.pid + Date.now(), config.getConfig().security.salt).slice(Math.floor(Math.random() * 70), 6)
+            let meetingID = hash.sha256(JSON.stringify(meetingData) + process.pid + Date.now(), config.getConfig().security.salt).slice(0, 6)
+            client.hgetall('meeting:' + meetingID, (err, data) => {
+                if(err || data){
+                    reject()
+                    return
+                }else {
+                    client.hset('meeting:' + meetingID, 'realStart', meetingData.realStart, 'start', meetingData.start, 'stop', meetingData.stop, 'name', meetingData.name)
+                    meetingData.id = meetingID
+                    resolve(meetingData)
+                }
+            })
         })        
     }
 }
