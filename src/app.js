@@ -17,7 +17,6 @@ const dispatcher = new (require('cluster-eventdispatcher'))()
 module.exports = function (app) {
     config.loadConfig().catch(() => { }).finally(async () => {
         await db.loadDB()
-
         app.set('x-powered-by', false)
         app.set('views', __dirname + '/views')
         app.set('view engine', 'ejs')

@@ -20,9 +20,13 @@ const validMeetingDataFields = ['name', 'realStart', 'start', 'stop']
 
 const database = {
     loadDB: async function () {
-        const host = process.env.TYPE === 'DOCKER' ? 'redis' : '127.0.0.1'
+        const host = process.env.REDIS_HOST ? process.env.REDIS_HOST : '127.0.0.1'
+        const port = process.env.REDIS_PORT ? process.env.REDIS_PORT : 6379
+        const password = process.env.REDIS_PASSWORD ? process.env.REDIS_PASSWORD : null
         client = redis.createClient({
-            host: host
+            host: host,
+            port: port,
+            password: password
         })
         client.once('error', () => {
             dispatcher.dispatch('redis:error', {

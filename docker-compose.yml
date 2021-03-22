@@ -5,10 +5,13 @@ services:
     ports: 
       - "80:80"
     environment:
-      TYPE: DOCKER
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: 'redispass'
   redis:
     container_name: redis
     image: "redis:latest"
+    command: redis-server --requirepass redispass
   openvidu:
     container_name: openvidu
     image: "openvidu/openvidu-server-kms:2.17.0"
@@ -16,3 +19,16 @@ services:
       - "4443:4443"
     environment:
       OPENVIDU_SECRET: MY_SECRET
+  etherpad:
+    container_name: etherpad
+    image: etherpad/etherpad
+    ports: 
+      - "9001:9001"
+    environment:
+      TITLE: 'OpenEduPad'
+      DEFAULT_PAD_TEXT: 'Willkommen auf OpenEdu!'
+      DB_TYPE: redis
+      DB_HOST: redis
+      DB_PORT: 6379
+      DB_PASS: 'redispass'
+      ADMIN_PASSWORD: pass
